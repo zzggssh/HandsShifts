@@ -7,10 +7,14 @@ import {getThemeColors} from '../theme';
 import ShiftListItem from '../components/ShiftListItem';
 import FiltersBar from '../components/FiltersBar';
 import {getShiftsByCoords} from '../services/api';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {RootStackParamList} from '../app/Navigation';
 
 function ShiftsListScreen() {
   const {shiftStore} = useStores();
   const [geoError, setGeoError] = useState<string | null>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     let aborted = false;
@@ -21,7 +25,7 @@ function ShiftsListScreen() {
         const {lat, lng} = await getCurrentCoords();
         if (aborted) return;
         shiftStore.setCoords(lat, lng);
-        shiftStore.status = 'done';
+        await shiftStore.fetchShifts((lat2, lng2) => getShiftsByCoords(lat2, lng2));
       } catch (e: any) {
         shiftStore.status = 'error';
         setGeoError(e?.message || 'geo_error');
@@ -34,8 +38,9 @@ function ShiftsListScreen() {
   }, [shiftStore]);
 
   const colors = useMemo(() => getThemeColors('light'), []);
+  const isLoading = shiftStore.status === 'loading';
 
-  if (shiftStore.status === 'loading') {
+  if (isLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
@@ -65,13 +70,17 @@ function ShiftsListScreen() {
       <FlatList
         data={shiftStore.sorted}
         keyExtractor={item => item.id}
-        renderItem={({item}) => <ShiftListItem item={item} />}
+        renderItem={({item}) => (
+          <TouchableOpacity onPress={() => navigation.navigate('ShiftDetails', {id: item.id})}>
+            <ShiftListItem item={item} />
+          </TouchableOpacity>
+        )}
         ListEmptyComponent={<View style={styles.center}><Text>Смен пока нет</Text></View>}
         contentContainerStyle={shiftStore.sorted.length === 0 ? styles.containerEmpty : undefined}
         onRefresh={async () => {
           await shiftStore.fetchShifts((lat, lng) => getShiftsByCoords(lat, lng));
         }}
-        refreshing={shiftStore.status === 'loading'}
+        refreshing={isLoading}
       />
     </View>
   );
