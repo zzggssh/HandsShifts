@@ -4,6 +4,9 @@ import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores/RootStore';
 import {getCurrentCoords, openSettings} from '../services/location';
 import {getThemeColors} from '../theme';
+import ShiftListItem from '../components/ShiftListItem';
+import FiltersBar from '../components/FiltersBar';
+import {getShiftsByCoords} from '../services/api';
 
 function ShiftsListScreen() {
   const {shiftStore} = useStores();
@@ -49,7 +52,7 @@ function ShiftsListScreen() {
           <Text style={{color: colors.accent}}>Повторить</Text>
         </TouchableOpacity>
         <View style={{height: 8}} />
-        <TouchableOpacity onPress={openSettings}>
+        <TouchableOpacity onPress={() => openSettings()}>
           <Text style={{color: colors.accent}}>Открыть настройки</Text>
         </TouchableOpacity>
       </View>
@@ -57,17 +60,20 @@ function ShiftsListScreen() {
   }
 
   return (
-    <FlatList
-      data={shiftStore.sorted}
-      keyExtractor={item => item.id}
-      renderItem={({item}) => (
-        <View style={styles.item}><Text>{item.companyName}</Text></View>
-      )}
-      ListEmptyComponent={
-        <View style={styles.center}><Text>Смен пока нет</Text></View>
-      }
-      contentContainerStyle={shiftStore.sorted.length === 0 ? styles.containerEmpty : undefined}
-    />
+    <View style={styles.container}>
+      <FiltersBar />
+      <FlatList
+        data={shiftStore.sorted}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => <ShiftListItem item={item} />}
+        ListEmptyComponent={<View style={styles.center}><Text>Смен пока нет</Text></View>}
+        contentContainerStyle={shiftStore.sorted.length === 0 ? styles.containerEmpty : undefined}
+        onRefresh={async () => {
+          await shiftStore.fetchShifts((lat, lng) => getShiftsByCoords(lat, lng));
+        }}
+        refreshing={shiftStore.status === 'loading'}
+      />
+    </View>
   );
 }
 
