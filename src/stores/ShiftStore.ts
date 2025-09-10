@@ -25,6 +25,24 @@ export class ShiftStore {
     makeAutoObservable(this, {}, {autoBind: true});
   }
 
+  async fetchShifts(fetcher: (lat: number, lng: number) => Promise<{data: Shift[]; status: number}>) {
+    if (!this.coords) return;
+    this.status = 'loading';
+    try {
+      const res = await fetcher(this.coords.lat, this.coords.lng);
+      runInAction(() => {
+        this.shifts = res.data;
+        this.status = 'done';
+        this.error = null;
+      });
+    } catch (e: any) {
+      runInAction(() => {
+        this.status = 'error';
+        this.error = e?.message || 'fetch_error';
+      });
+    }
+  }
+
   setCoords(lat: number, lng: number) {
     this.coords = {lat, lng};
   }
