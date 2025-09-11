@@ -17,9 +17,10 @@ export default observer(function FiltersBar() {
         <Chip active={shiftStore.filterDay} onPress={() => shiftStore.setFilterDay(toggle(shiftStore.filterDay))} label="Дневные" />
         <Chip active={shiftStore.filterNight} onPress={() => shiftStore.setFilterNight(toggle(shiftStore.filterNight))} label="Ночные" />
         <Chip active={shiftStore.myMode !== 'off'} onPress={() => shiftStore.setMyMode(shiftStore.myMode === 'off' ? 'future' : shiftStore.myMode === 'future' ? 'past' : 'off')} label="Мои смены" />
+        <Chip active={shiftStore.showDates} onPress={() => shiftStore.toggleShowDates()} label="Календарь" />
         <Chip active={false} onPress={() => shiftStore.clearFilters()} label="Сбросить" />
       </ScrollView>
-      <DateChips />
+      {shiftStore.showDates ? <DateChips /> : null}
     </View>
   );
 });

@@ -19,6 +19,7 @@ export class ShiftStore {
   selectedDates: string[] = [];
   myMode: MyMode = 'off';
   favorites = new Set<string>();
+  showDates = false;
 
   constructor(root: RootStore) {
     this.root = root;
@@ -82,6 +83,7 @@ export class ShiftStore {
     this.filterNight = false;
     this.selectedDates = [];
     this.myMode = 'off';
+    this.showDates = false;
   }
 
   setMyMode(mode: MyMode) {
@@ -91,6 +93,10 @@ export class ShiftStore {
   toggleFavorite(id: string) {
     if (this.favorites.has(id)) this.favorites.delete(id);
     else this.favorites.add(id);
+  }
+
+  toggleShowDates() {
+    this.showDates = !this.showDates;
   }
 
   get isNight() {
