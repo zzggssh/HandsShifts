@@ -127,6 +127,7 @@ export class ShiftStore {
         const shiftDate = new Date(y, m - 1, d);
         return this.myMode === 'future' ? shiftDate >= nowKey : shiftDate < nowKey;
       });
+      return list;
     }
 
     if (this.filterDay || this.filterNight) {

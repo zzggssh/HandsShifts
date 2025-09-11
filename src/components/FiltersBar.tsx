@@ -2,6 +2,7 @@ import React from 'react';
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores/RootStore';
+import DateChips from './DateChips';
 
 export default observer(function FiltersBar() {
   const {shiftStore} = useStores();
@@ -16,9 +17,9 @@ export default observer(function FiltersBar() {
         <Chip active={shiftStore.filterDay} onPress={() => shiftStore.setFilterDay(toggle(shiftStore.filterDay))} label="Дневные" />
         <Chip active={shiftStore.filterNight} onPress={() => shiftStore.setFilterNight(toggle(shiftStore.filterNight))} label="Ночные" />
         <Chip active={shiftStore.myMode !== 'off'} onPress={() => shiftStore.setMyMode(shiftStore.myMode === 'off' ? 'future' : shiftStore.myMode === 'future' ? 'past' : 'off')} label="Мои смены" />
-        <Chip active={false} onPress={() => {}} label="Календарь" />
         <Chip active={false} onPress={() => shiftStore.clearFilters()} label="Сбросить" />
       </ScrollView>
+      <DateChips />
     </View>
   );
 });

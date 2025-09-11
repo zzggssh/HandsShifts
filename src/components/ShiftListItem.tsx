@@ -1,13 +1,15 @@
 import React, {memo, useMemo} from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import type {Shift} from '../types/shift';
 import {badgeForDate, formatPriceRub} from '../utils/format';
+import {useStores} from '../stores/RootStore';
 
 type Props = {
   item: Shift;
 };
 
 function ShiftListItem({item}: Props) {
+  const {shiftStore} = useStores();
   const badge = useMemo(() => badgeForDate(item.dateStartByCity, item.timeStartByCity, item.timeEndByCity), [item]);
   return (
     <View style={styles.container}>
@@ -21,6 +23,9 @@ function ShiftListItem({item}: Props) {
         <Text style={styles.subtitle} numberOfLines={2}>{item.address}</Text>
         <View style={styles.row}>
           <Text style={styles.meta}>{item.dateStartByCity} • {item.timeStartByCity}–{item.timeEndByCity}</Text>
+          <TouchableOpacity onPress={() => shiftStore.toggleFavorite(item.id)}>
+            <Text style={styles.fav}>{shiftStore.favorites.has(item.id) ? '★' : '☆'}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -37,6 +42,7 @@ const styles = StyleSheet.create({
   price: {marginLeft: 8, fontWeight: '600', color: '#2563EB'},
   subtitle: {marginTop: 2, color: '#6B7280'},
   meta: {marginTop: 6, color: '#6B7280'},
+  fav: {marginLeft: 8, fontSize: 18, color: '#F59E0B'},
 });
 
 export default memo(ShiftListItem);
