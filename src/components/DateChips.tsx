@@ -1,8 +1,9 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores/RootStore';
 import {toDateKeyRu} from '../utils/format';
+import {ThemeContext} from '../app/ThemeProvider';
 
 function getNextDays(count: number) {
   const today = new Date();
@@ -20,6 +21,8 @@ function getNextDays(count: number) {
 
 export default observer(function DateChips() {
   const {shiftStore} = useStores();
+  const theme = useContext(ThemeContext);
+  const colors = theme?.colors;
   const days = useMemo(() => getNextDays(30), []);
 
   return (
@@ -27,8 +30,8 @@ export default observer(function DateChips() {
       {days.map(d => {
         const active = shiftStore.selectedDates.includes(d.key);
         return (
-          <TouchableOpacity key={d.key} onPress={() => shiftStore.toggleDate(d.key)} style={[styles.chip, active && styles.chipActive]}>
-            <Text style={[styles.text, active && styles.textActive]}>{d.label}</Text>
+          <TouchableOpacity key={d.key} onPress={() => shiftStore.toggleDate(d.key)} style={[styles.chip, {backgroundColor: active ? colors?.accent : '#F3F4F6'}]}>
+            <Text style={[styles.text, {color: active ? '#FFFFFF' : (colors?.text || '#111827')}, active && styles.bold]}>{d.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -38,9 +41,8 @@ export default observer(function DateChips() {
 
 const styles = StyleSheet.create({
   row: {paddingHorizontal: 8, paddingBottom: 8},
-  chip: {paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#F3F4F6', marginRight: 8},
-  chipActive: {backgroundColor: '#2563EB'},
-  text: {color: '#111827'},
-  textActive: {color: '#FFFFFF', fontWeight: '600'},
+  chip: {paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, marginRight: 8},
+  text: {},
+  bold: {fontWeight: '600'},
 });
 

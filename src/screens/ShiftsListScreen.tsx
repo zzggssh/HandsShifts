@@ -62,7 +62,7 @@ function ShiftsListScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: colors?.background}] }>
       <FiltersBar />
       <FlatList
         data={shiftStore.sorted}
