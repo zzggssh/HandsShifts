@@ -1,4 +1,5 @@
 import {Platform} from 'react-native';
+import {CONFIG} from '../config';
 import Geolocation, {GeoPosition} from 'react-native-geolocation-service';
 import {
   request,
@@ -27,6 +28,9 @@ export async function getCurrentCoords(options?: {timeoutMs?: number}): Promise<
   const timeoutMs = options?.timeoutMs ?? 15000;
   const perm = await ensureLocationPermission();
   if (perm !== 'granted') throw new Error('location_not_granted');
+  if (Platform.OS === 'ios' && __DEV__ && CONFIG.USE_FALLBACK) {
+    try { Geolocation.requestAuthorization('whenInUse'); } catch {}
+  }
   const position: GeoPosition = await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('location_timeout')), timeoutMs);
     Geolocation.getCurrentPosition(

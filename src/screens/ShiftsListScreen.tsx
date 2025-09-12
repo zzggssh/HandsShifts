@@ -10,22 +10,24 @@ import {getShiftsByCoords} from '../services/api';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import type {RootStackParamList} from '../app/Navigation';
+import CityPickerModal from '../components/CityPickerModal';
 
 function ShiftsListScreen() {
   const {shiftStore} = useStores();
   const [geoError, setGeoError] = useState<string | null>(null);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const theme = useContext(ThemeContext);
+  const [cityModal, setCityModal] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setGeoError(null);
-      shiftStore.status = 'loading';
+      shiftStore.setStatus('loading');
       const {lat, lng} = await getCurrentCoords();
       shiftStore.setCoords(lat, lng);
       await shiftStore.fetchShifts((lat2, lng2) => getShiftsByCoords(lat2, lng2));
     } catch (e: any) {
-      shiftStore.status = 'error';
+      shiftStore.setStatus('error');
       setGeoError(e?.message || 'geo_error');
     }
   }, [shiftStore]);
@@ -36,6 +38,14 @@ function ShiftsListScreen() {
 
   const colors = theme?.colors;
   const isLoading = shiftStore.status === 'loading';
+  const errorText = useMemo(() => {
+    if (!geoError && shiftStore.error === 'http_404') return 'Данные не найдены (404)';
+    if (!geoError && shiftStore.error && shiftStore.error.startsWith('http_')) return 'Ошибка сервера';
+    if (!geoError && shiftStore.error) return 'Ошибка сети';
+    if (geoError === 'location_not_granted') return 'Нет доступа к геолокации';
+    if (geoError === 'location_timeout') return 'Не удалось определить координаты';
+    return 'Не удалось загрузить данные';
+  }, [geoError, shiftStore.error]);
 
   if (isLoading) {
     return (
@@ -48,15 +58,29 @@ function ShiftsListScreen() {
   if (shiftStore.status === 'error') {
     return (
       <View style={styles.center}>
-        <Text>Не удалось получить геолокацию</Text>
+        <Text>{errorText}</Text>
         <View style={{height: 12}} />
         <TouchableOpacity onPress={load}>
           <Text style={{color: colors?.accent}}>Повторить</Text>
         </TouchableOpacity>
         <View style={{height: 8}} />
-        <TouchableOpacity onPress={() => openSettings()}>
-          <Text style={{color: colors?.accent}}>Открыть настройки</Text>
+        {geoError === 'location_not_granted' ? (
+          <TouchableOpacity onPress={() => openSettings()}>
+            <Text style={{color: colors?.accent}}>Открыть настройки</Text>
+          </TouchableOpacity>
+        ) : null}
+        <View style={{height: 8}} />
+        <TouchableOpacity onPress={() => setCityModal(true)}>
+          <Text style={{color: colors?.accent}}>Выбрать город</Text>
         </TouchableOpacity>
+        <CityPickerModal
+          visible={cityModal}
+          onClose={() => setCityModal(false)}
+          onSelect={async (lat, lng) => {
+            shiftStore.setCoords(lat, lng);
+            await shiftStore.fetchShifts((a, b) => getShiftsByCoords(a, b));
+          }}
+        />
       </View>
     );
   }
@@ -76,6 +100,17 @@ function ShiftsListScreen() {
         contentContainerStyle={shiftStore.sorted.length === 0 ? styles.containerEmpty : undefined}
         onRefresh={load}
         refreshing={isLoading}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+      />
+      <CityPickerModal
+        visible={cityModal}
+        onClose={() => setCityModal(false)}
+        onSelect={async (lat, lng) => {
+          shiftStore.setCoords(lat, lng);
+          await shiftStore.fetchShifts((a, b) => getShiftsByCoords(a, b));
+        }}
       />
     </View>
   );

@@ -26,20 +26,28 @@ export class ShiftStore {
     makeAutoObservable(this, {}, {autoBind: true});
   }
 
+  setStatus(next: Status) {
+    this.status = next;
+  }
+
+  setError(message: string | null) {
+    this.error = message;
+  }
+
   async fetchShifts(fetcher: (lat: number, lng: number) => Promise<{data: Shift[]; status: number}>) {
     if (!this.coords) return;
-    this.status = 'loading';
+    this.setStatus('loading');
     try {
       const res = await fetcher(this.coords.lat, this.coords.lng);
       runInAction(() => {
         this.shifts = res.data;
-        this.status = 'done';
-        this.error = null;
+        this.setStatus('done');
+        this.setError(null);
       });
     } catch (e: any) {
       runInAction(() => {
-        this.status = 'error';
-        this.error = e?.message || 'fetch_error';
+        this.setStatus('error');
+        this.setError(e?.message || 'fetch_error');
       });
     }
   }

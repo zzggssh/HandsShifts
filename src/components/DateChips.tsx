@@ -30,8 +30,8 @@ export default observer(function DateChips() {
       {days.map(d => {
         const active = shiftStore.selectedDates.includes(d.key);
         return (
-          <TouchableOpacity key={d.key} onPress={() => shiftStore.toggleDate(d.key)} style={[styles.chip, {backgroundColor: active ? colors?.accent : '#F3F4F6'}]}>
-            <Text style={[styles.text, {color: active ? '#FFFFFF' : (colors?.text || '#111827')}, active && styles.bold]}>{d.label}</Text>
+          <TouchableOpacity key={d.key} onPress={() => shiftStore.toggleDate(d.key)} style={[styles.chip, {backgroundColor: active ? colors?.chipActiveBg : colors?.chipBg}]}>
+            <Text style={[styles.text, {color: active ? colors?.chipActiveText : colors?.chipText}, active && styles.bold]}>{d.label}</Text>
           </TouchableOpacity>
         );
       })}

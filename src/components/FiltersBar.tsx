@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View, ActionSheetIOS, Platform} from 'react-native';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores/RootStore';
 import DateChips from './DateChips';
@@ -19,7 +19,28 @@ export default observer(function FiltersBar() {
         <Chip active={shiftStore.isNearestByDistance} onPress={() => shiftStore.setNearestByDistance(toggle(shiftStore.isNearestByDistance))} label="Ближайшие по расстоянию" colors={colors} />
         <Chip active={shiftStore.filterDay} onPress={() => shiftStore.setFilterDay(toggle(shiftStore.filterDay))} label="Дневные" colors={colors} />
         <Chip active={shiftStore.filterNight} onPress={() => shiftStore.setFilterNight(toggle(shiftStore.filterNight))} label="Ночные" colors={colors} />
-        <Chip active={shiftStore.myMode !== 'off'} onPress={() => shiftStore.setMyMode(shiftStore.myMode === 'off' ? 'future' : shiftStore.myMode === 'future' ? 'past' : 'off')} label="Мои смены" colors={colors} />
+        <Chip
+          active={shiftStore.myMode !== 'off'}
+          onPress={() => {
+            if (Platform.OS === 'ios') {
+              ActionSheetIOS.showActionSheetWithOptions(
+                {
+                  options: ['Отмена', 'Выключено', 'Будущие', 'Прошедшие'],
+                  cancelButtonIndex: 0,
+                },
+                index => {
+                  if (index === 1) shiftStore.setMyMode('off');
+                  if (index === 2) shiftStore.setMyMode('future');
+                  if (index === 3) shiftStore.setMyMode('past');
+                },
+              );
+            } else {
+              shiftStore.setMyMode(shiftStore.myMode === 'off' ? 'future' : shiftStore.myMode === 'future' ? 'past' : 'off');
+            }
+          }}
+          label="Мои смены"
+          colors={colors}
+        />
         <Chip active={shiftStore.showDates} onPress={() => shiftStore.toggleShowDates()} label="Календарь" colors={colors} />
         <Chip active={false} onPress={() => shiftStore.clearFilters()} label="Сбросить" colors={colors} />
       </ScrollView>
@@ -30,8 +51,8 @@ export default observer(function FiltersBar() {
 
 function Chip({label, active, onPress, colors}: {label: string; active: boolean; onPress: () => void; colors?: any}) {
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.chip, {backgroundColor: active ? colors?.accent : '#F3F4F6'}]}>
-      <Text style={[styles.chipText, {color: active ? '#FFFFFF' : (colors?.text || '#111827')}, active && styles.bold]}>{label}</Text>
+    <TouchableOpacity onPress={onPress} style={[styles.chip, {backgroundColor: active ? colors?.chipActiveBg : colors?.chipBg}]}>
+      <Text style={[styles.chipText, {color: active ? colors?.chipActiveText : colors?.chipText}, active && styles.bold]}>{label}</Text>
     </TouchableOpacity>
   );
 }
